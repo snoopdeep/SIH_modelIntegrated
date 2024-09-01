@@ -92,6 +92,8 @@
 # # Clean up
 # video_capture.release()
 # cv2.destroyAllWindows()
+
+
 import tensorflow as tf
 import argparse
 import cv2
@@ -99,6 +101,12 @@ import numpy as np
 import os
 import pickle
 from tensorflow.keras.preprocessing.image import img_to_array
+
+# Correct method to load a .keras or .h5 file
+from tensorflow.keras.models import load_model
+
+
+
 
 # Construct argument parse and parse the arguments
 ap = argparse.ArgumentParser()
@@ -116,9 +124,13 @@ protoPath = os.path.sep.join([args["detector"], "deploy.prototxt"])
 modelPath = os.path.sep.join([args["detector"], "res10_300x300_ssd_iter_140000.caffemodel"])
 net = cv2.dnn.readNetFromCaffe(protoPath, modelPath)
 
+# # Load the liveness detection model
+# print("loading the liveness detector")
+# model = tf.saved_model.load(args["model"])
+
 # Load the liveness detection model
 print("loading the liveness detector")
-model = tf.saved_model.load(args["model"])
+model = load_model(args["model"])  # Use the correct function for loading .keras files
 
 # Load label encoder
 le = pickle.loads(open(args["le"], "rb").read())

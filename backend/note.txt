@@ -1,4 +1,4 @@
-python demo.py -m "C:\Users\Deepak Singh\OneDrive\Desktop\SIH\backend\liveness1.keras" -l "C:\Users\Deepak Singh\OneDrive\Desktop\SIH\backend\le.pickle" -d "C:\Users\Deepak Singh\OneDrive\Desktop\SIH\backend" -p "C:\Users\Deepak Singh\OneDrive\Desktop\SIH\backend\shape_predictor"
+python demo.py -m "C:\Users\Deepak Singh\OneDrive\Desktop\SIH\backend\liveness1.keras" -l "C:\Users\Deepak Singh\OneDrive\Desktop\SIH\backend\le.pickle" -d "C:\Users\Deepak Singh\OneDrive\Desktop\SIH\backend" -p "C:\Users\Deepak Singh\OneDrive\Desktop\SIH\backend\shape_predictor" -o "C:\Users\Deepak Singh\OneDrive\Desktop\SIH\backend\"
 
 To run the backend to listen to request.. :
 python app.py

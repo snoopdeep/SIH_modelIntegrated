@@ -1,39 +1,41 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS  # Import CORS
 import cv2
 import numpy as np
-from keras.models import load_model
-import pickle
+from movement import detect_nose, draw_controller, log_movement, reset_press_flag
 
-# Initialize Flask app
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+from flask_cors import CORS
+CORS(app)
 
-# Load the model and label encoder
-model = load_model('liveness1.keras')
-label_encoder = pickle.load(open('le.pickle', 'rb'))
+faceCascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
 @app.route('/detect', methods=['POST'])
-def detect_liveness():
-    if 'image' not in request.files:
-        return jsonify({"error": "No image file provided"}), 400
+def detect_movement():
+    # Collect frames from the request
+    frames = []
+    for key in request.files:
+        file = request.files[key].read()
+        npimg = np.frombuffer(file, np.uint8)
+        img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
+        frames.append(img)
 
-    image_file = request.files['image']
-    image = cv2.imdecode(np.frombuffer(image_file.read(), np.uint8), cv2.IMREAD_COLOR)
-    
-    # Preprocess the image: Resize to (32, 32) and normalize
-    image = cv2.resize(image, (32, 32))  # Resize to match model input shape
-    image = image.astype('float32') / 255.0  # Normalize to [0, 1] range
-    image = np.expand_dims(image, axis=0)  # Add batch dimension
+    # Initialize movement detection variables
+    prev_nose_cords = None
+    detected_movements = []
+    cmd = ""
 
-    # Use your model to predict liveness
-    prediction = model.predict(image)
+    # Process each frame
+    for img in frames:
+        img, nose_cords = detect_nose(img, faceCascade)
+        cords = draw_controller(img, (int(img.shape[1] / 2), int(img.shape[0] / 2)))
+        if len(nose_cords):
+            cmd = log_movement(nose_cords, cords, cmd, prev_nose_cords)
+            prev_nose_cords = nose_cords
 
-    # Convert the prediction to readable format
-    label = label_encoder.inverse_transform([np.argmax(prediction)])[0]
+        detected_movements.append(cmd)
 
-    return jsonify({"liveness": label})
-
+    # Return detected movements for all frames
+    return jsonify({"liveness": detected_movements})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000)

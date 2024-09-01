@@ -1,0 +1,4 @@
+python demo.py -m "C:\Users\Deepak Singh\OneDrive\Desktop\MLMODEL\Face-Liveness-Detection\liveness1.keras" -l "C:\Users\Deepak Singh\OneDrive\Desktop\MLMODEL\Face-Liveness-Detection\le.pickle" -d "C:\Users\Deepak Singh\OneDrive\Desktop\MLMODEL\Face-Liveness-Detection" -p "C:\Users\Deepak Singh\OneDrive\Desktop\MLMODEL\Face-Liveness-Detection\shape_predictor"
+
+To run the model:
+python app.py

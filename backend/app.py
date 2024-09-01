@@ -35,7 +35,7 @@ def detect_movement():
         detected_movements.append(cmd)
 
     # Return detected movements for all frames
-    return jsonify({"liveness": detected_movements})
+    return jsonify({"movement": detected_movements})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

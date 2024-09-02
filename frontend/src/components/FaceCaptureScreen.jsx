@@ -1,3 +1,5 @@
+
+
 // import React, { useRef, useState, useEffect } from "react";
 // import Webcam from "react-webcam";
 // import AuthAnimation from "./AuthAnimation"; // Import your animation component
@@ -68,7 +70,7 @@
 
 //   const captureAndVerifyLiveness = async () => {
 //     const capturedFrames = [];
-//     const captureCount = 30; // Number of frames to capture
+//     const captureCount = 30; // Ensure exactly 30 frames are captured
 //     const delayBetweenCaptures = 100; // Delay between captures in milliseconds
 
 //     setMessage("Move your head or blink while frames are being captured.");
@@ -86,15 +88,25 @@
 //     }, 1000);
 
 //     // Capture frames
-//     for (let i = 0; i < captureCount; i++) {
+//     let framesCaptured = 0; // Track the number of frames captured
+//     while (framesCaptured < captureCount) {
 //       const imageSrc = webcamRef.current?.getScreenshot(); // Capture image from webcam
 //       if (imageSrc) {
-//         const response = await fetch(imageSrc);
-//         const blob = await response.blob();
-//         capturedFrames.push(blob); // Add frame to capturedFrames array
+//         try {
+//           const response = await fetch(imageSrc);
+//           const blob = await response.blob();
+//           capturedFrames.push(blob); // Add frame to capturedFrames array
+//           framesCaptured++; // Increment the count of successfully captured frames
+//         } catch (error) {
+//           console.error("Error capturing frame:", error);
+//         }
+//       } else {
+//         console.warn("getScreenshot returned null, retrying...");
 //       }
 //       await new Promise((resolve) => setTimeout(resolve, delayBetweenCaptures)); // Wait for the specified delay
 //     }
+
+//     console.log({ movement: capturedFrames }); // Log frames count to check consistency
 
 //     // Send captured frames to backend for liveness detection
 //     try {
@@ -110,6 +122,7 @@
 //         method: "POST",
 //         body: formData,
 //       });
+//       console.log(result);
 
 //       const data = await result.json();
 //       console.log(data);
@@ -181,9 +194,11 @@
 
 // export default FaceCaptureScreen;
 
+
 import React, { useRef, useState, useEffect } from "react";
 import Webcam from "react-webcam";
 import AuthAnimation from "./AuthAnimation"; // Import your animation component
+import LivenessCheck from "./LivenessCheck"; // Import the new component
 
 const FaceCaptureScreen = ({ onComplete }) => {
   const webcamRef = useRef(null);
@@ -197,6 +212,7 @@ const FaceCaptureScreen = ({ onComplete }) => {
   const [cameraReady, setCameraReady] = useState(false);
   const [livenessResult, setLivenessResult] = useState(null); // State to store result
   const [timer, setTimer] = useState(5); // Timer state for capturing frames
+  const [showLivenessCheck, setShowLivenessCheck] = useState(false); // New state to show LivenessCheck component
 
   const availableTasks = [
     "Turn Left",
@@ -317,10 +333,14 @@ const FaceCaptureScreen = ({ onComplete }) => {
     }
   };
 
-  const finalVerification = async () => {
-    // Final liveness verification after all tasks are completed
-    await captureAndVerifyLiveness();
+  const handleLivenessCheck = () => {
+    // Just navigate to the LivenessCheck component without sending a request
+    setShowLivenessCheck(true); // Show the LivenessCheck component
   };
+
+  if (showLivenessCheck) {
+    return <LivenessCheck />; // Render LivenessCheck component if state is true
+  }
 
   return (
     <div className="flex flex-col items-center justify-center bg-white shadow-lg p-8 rounded-lg mx-4 md:mx-auto max-w-2xl mt-3">
@@ -349,7 +369,7 @@ const FaceCaptureScreen = ({ onComplete }) => {
             <>
               <button
                 className="mt-4 bg-[#ff8c00] text-white py-3 px-6 rounded-full hover:bg-[#db851c] transition duration-800 shadow-lg shadow-gray-400"
-                onClick={finalVerification} // Final verification after all tasks
+                onClick={handleLivenessCheck} // Go to LivenessCheck component
                 disabled={loading}
               >
                 {loading ? "Verifying..." : "Verify Liveness"}

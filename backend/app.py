@@ -1,292 +1,18 @@
-# from flask import Flask, request, jsonify
-# import cv2
-# import numpy as np
-# from movement import detect_nose, draw_controller, log_movement, reset_press_flag
-
-# app = Flask(__name__)
-# from flask_cors import CORS
-# CORS(app)
-
-# faceCascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-
-# @app.route('/detect', methods=['POST'])
-# def detect_movement():
-#     # Collect frames from the request
-#     frames = []
-#     for key in request.files:
-#         file = request.files[key].read()
-#         npimg = np.frombuffer(file, np.uint8)
-#         img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
-#         frames.append(img)
-
-#     # Initialize movement detection variables
-#     prev_nose_cords = None
-#     detected_movements = []
-#     cmd = ""
-
-#     # Process each frame
-#     for img in frames:
-#         img, nose_cords = detect_nose(img, faceCascade)
-#         cords = draw_controller(img, (int(img.shape[1] / 2), int(img.shape[0] / 2)))
-#         if len(nose_cords):
-#             cmd = log_movement(nose_cords, cords, cmd, prev_nose_cords)
-#             prev_nose_cords = nose_cords
-
-#         detected_movements.append(cmd)
-
-#     # Return detected movements for all frames
-#     return jsonify({"movement": detected_movements})
-
-# if __name__ == '__main__':
-#     app.run(host='0.0.0.0', port=5000)
-
-# from flask import Flask, request, jsonify
-# import cv2
-# import numpy as np
-# from movement import detect_nose, draw_controller, log_movement, reset_press_flag
-# from flask_cors import CORS
-
-# app = Flask(__name__)
-# CORS(app)
-
-# faceCascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-
-# @app.route('/detect', methods=['POST'])
-# def detect_movement():
-#     print("Received request to /detect")  # Log to ensure route is being accessed
-#     try:
-#         # Check if files are present in the request
-#         if 'image_0' not in request.files:
-#             return jsonify({"error": "No files provided"}), 400
-        
-#         # Collect frames from the request
-#         frames = []
-#         for key in request.files:
-#             file = request.files[key].read()
-#             npimg = np.frombuffer(file, np.uint8)
-#             img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
-#             frames.append(img)
-
-#         # Initialize movement detection variables
-#         prev_nose_cords = None
-#         detected_movements = []
-#         cmd = ""
-
-#         # Process each frame
-#         for img in frames:
-#             img, nose_cords = detect_nose(img, faceCascade)
-#             cords = draw_controller(img, (int(img.shape[1] / 2), int(img.shape[0] / 2)))
-#             if len(nose_cords):
-#                 cmd = log_movement(nose_cords, cords, cmd, prev_nose_cords)
-#                 prev_nose_cords = nose_cords
-
-#             detected_movements.append(cmd)
-
-#         # Return detected movements for all frames
-#         return jsonify({"movement": detected_movements})
-
-#     except Exception as e:
-#         print(f"Error processing frames: {e}")
-#         return jsonify({"error": "An error occurred while processing the frames."}), 500
-
-# if __name__ == '__main__':
-#     print("Starting Flask server...")
-#     app.run(host='0.0.0.0', port=5000)
 
 
-# from flask import Flask, request, jsonify
-# from flask_cors import CORS
-# import cv2
-# import numpy as np
-# from movement import detect_nose, draw_controller, log_movement, reset_press_flag
-
-# app = Flask(__name__)
-# CORS(app, resources={r"/detect": {"origins": "*"}})  # Allow all origins for /detect route
-
-# faceCascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-
-# @app.route('/detect', methods=['POST'])
-# def detect_movement():
-#     print("Received request to /detect")  # Log to ensure route is being accessed
-#     try:
-#         # Check if files are present in the request
-#         if 'image_0' not in request.files:
-#             return jsonify({"error": "No files provided"}), 400
-        
-#         # Collect frames from the request
-#         frames = []
-#         for key in request.files:
-#             file = request.files[key].read()
-#             npimg = np.frombuffer(file, np.uint8)
-#             img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
-#             frames.append(img)
-
-#         # Initialize movement detection variables
-#         prev_nose_cords = None
-#         detected_movements = []
-#         cmd = ""
-
-#         # Process each frame
-#         for img in frames:
-#             img, nose_cords = detect_nose(img, faceCascade)
-#             cords = draw_controller(img, (int(img.shape[1] / 2), int(img.shape[0] / 2)))
-#             if len(nose_cords):
-#                 cmd = log_movement(nose_cords, cords, cmd, prev_nose_cords)
-#                 prev_nose_cords = nose_cords
-
-#             detected_movements.append(cmd)
-
-#         # Return detected movements for all frames
-#         return jsonify({"movement": detected_movements})
-
-#     except Exception as e:
-#         print(f"Error processing frames: {e}")
-#         return jsonify({"error": "An error occurred while processing the frames."}), 500
-
-# if __name__ == '__main__':
-#     print("Starting Flask server...")
-#     app.run(host='0.0.0.0', port=5000)
-
-# -----------
-
-
-# from flask import Flask, request, jsonify
-# from flask_cors import CORS
-# import cv2
-# import dlib
-# import numpy as np
-# from scipy.spatial import distance as dist
-# from datetime import datetime
-
-# app = Flask(__name__)
-# CORS(app, resources={r"/detect": {"origins": "*"}})  # Allow all origins for /detect route
-
-# # Initialize dlib's face detector (HOG-based) and facial landmark predictor
-# detector = dlib.get_frontal_face_detector()
-# predictor = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat')
-
-# # Function to convert dlib shape object to numpy array
-# def shape_to_np(shape, dtype="int"):
-#     coords = np.zeros((68, 2), dtype=dtype)
-#     for i in range(0, 68):
-#         coords[i] = (shape.part(i).x, shape.part(i).y)
-#     return coords
-
-# # Function to detect the nose tip using dlib
-# def detect_nose(img):
-#     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-#     rects = detector(gray, 1)
-
-#     nose_cords = []
-#     for rect in rects:
-#         shape = predictor(gray, rect)
-#         shape = shape_to_np(shape)
-#         # Get the landmark for the nose tip (index 30)
-#         nose_cords = (shape[30][0], shape[30][1])
-#         cv2.circle(img, nose_cords, 10, (0, 255, 0), 2)  # Draw circle on the nose
-
-#     return img, nose_cords
-
-# # Function to draw controller
-# def draw_controller(img, cords):
-#     size = 20
-#     x1 = cords[0] - size
-#     y1 = cords[1] - size
-#     x2 = cords[0] + size
-#     y2 = cords[1] + size
-#     cv2.circle(img, cords, size, (255, 0, 0), 2)
-#     return [(x1, y1), (x2, y2)]
-
-# # Function to log movement
-# def log_movement(nose_cords, cords, cmd, prev_nose_cords):
-#     try:
-#         [(x1, y1), (x2, y2)] = cords
-#         xc, yc = nose_cords
-#     except Exception as e:
-#         print(e)
-#         return cmd
-
-#     if xc < x1:
-#         cmd = "left"
-#     elif xc > x2:
-#         cmd = "right"
-#     elif yc < y1:
-#         cmd = "up"
-#     elif yc > y2:
-#         cmd = "down"
-
-#     if prev_nose_cords:
-#         px, py = prev_nose_cords
-#         angle = np.arctan2(yc - py, xc - px) * 180 / np.pi
-#         if angle > 10:
-#             cmd = "clockwise"
-#         elif angle < -10:
-#             cmd = "anticlockwise"
-
-#     if cmd:
-#         print("Detected movement: ", cmd, "\n")
-#         with open("head_movements.txt", "a") as file:
-#             file.write(f"{datetime.now()}: {cmd}\n")
-    
-#     return cmd
-
-# @app.route('/detect', methods=['POST'])
-# def detect_movement():
-#     print("Received request to /detect")  # Log to ensure route is being accessed
-#     try:
-#         # Check if files are present in the request
-#         if 'image_0' not in request.files:
-#             return jsonify({"error": "No files provided"}), 400
-        
-#         # Collect frames from the request
-#         frames = []
-#         for key in request.files:
-#             file = request.files[key].read()
-#             npimg = np.frombuffer(file, np.uint8)
-#             img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
-#             frames.append(img)
-
-#         # Initialize movement detection variables
-#         prev_nose_cords = None
-#         detected_movements = []
-#         cmd = ""
-
-#         # Process each frame
-#         for img in frames:
-#             img, nose_cords = detect_nose(img)
-#             if nose_cords:  # Check if nose was detected
-#                 cords = draw_controller(img, (int(img.shape[1] / 2), int(img.shape[0] / 2)))
-#                 cmd = log_movement(nose_cords, cords, cmd, prev_nose_cords)
-#                 prev_nose_cords = nose_cords
-
-#             detected_movements.append(cmd)
-
-#         # Return detected movements for all frames
-#         return jsonify({"movement": detected_movements})
-
-#     except Exception as e:
-#         print(f"Error processing frames: {e}")
-#         return jsonify({"error": "An error occurred while processing the frames."}), 500
-
-# if __name__ == '__main__':
-#     print("Starting Flask
-# 
-# 
-#  server...")
-#     app.run(host='0.0.0.0', port=5000)
-
-
-
-# app.py
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import cv2
 import dlib
 import numpy as np
 from scipy.spatial import distance as dist
+import subprocess
+import os
 
 app = Flask(__name__)
-CORS(app, resources={r"/detect": {"origins": "*"}})  # Allow all origins for /detect route
+
+# Enable CORS for all routes
+CORS(app)  # This allows all routes to be accessible from any origin
 
 # Initialize dlib's face detector (HOG-based) and facial landmark predictor
 detector = dlib.get_frontal_face_detector()
@@ -403,6 +129,78 @@ def detect_movement():
         print(f"Error processing frames: {e}")
         return jsonify({"error": "An error occurred while processing the frames."}), 500
 
+# @app.route('/livenesscheck', methods=['POST'])
+# def liveness_check():
+#     print("Received request to /livenesscheck")  # Log to ensure route is being accessed
+    
+#     try:
+#         # Define the command to run demo.py with all required arguments
+#         command = [
+#             "python", "demo.py",
+#             "-m", "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\liveness1.keras",
+#             "-l", "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\le.pickle",
+#             "-d", "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend",
+#             "-p", "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\shape_predictor",
+#             "-o", "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\output.txt"
+#         ]
+
+#         # Run the command and wait for 5 seconds
+#         process = subprocess.Popen(command)
+#         process.wait(timeout=5)  # Run the process for 5 seconds
+
+#         # Check if output file is created
+#         output_file_path = "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\output.txt"
+#         if os.path.exists(output_file_path):
+#             return send_file(output_file_path, as_attachment=True)
+
+#         return jsonify({"error": "Liveness check failed to produce output"}), 500
+
+#     except subprocess.TimeoutExpired:
+#         print("Process took too long and was terminated.")
+#         return jsonify({"error": "Liveness check process took too long"}), 500
+#     except Exception as e:
+#         print(f"Error during liveness check: {e}")
+#         return jsonify({"error": "An error occurred during liveness check"}), 500
+
+@app.route('/livenesscheck', methods=['POST'])
+def liveness_check():
+    print("Received request to /livenesscheck")  # Log to ensure route is being accessed
+    
+    try:
+        # Define the command to run demo.py with all required arguments
+        command = [
+            "python", "demo.py",
+            "-m", "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\liveness1.keras",
+            "-l", "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\le.pickle",
+            "-d", "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend",
+            "-p", "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\shape_predictor",
+            "-o", "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\output.txt"
+        ]
+
+        # Run the command and wait for 5 seconds
+        process = subprocess.Popen(command)
+        process.wait(timeout=10)  # Run the process for 5 seconds
+
+        # Terminate the process to close the webcam
+        process.terminate()
+
+        # Check if output file is created
+        output_file_path = "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\output.txt"
+        if os.path.exists(output_file_path):
+            with open(output_file_path, 'r') as file:
+                output_content = file.read()
+            return jsonify({"message": "Liveness check completed.", "output": output_content})
+
+        return jsonify({"error": "Liveness check failed to produce output"}), 500
+
+    except subprocess.TimeoutExpired:
+        print("Process took too long and was terminated.")
+        return jsonify({"error": "Liveness check process took too long"}), 500
+    except Exception as e:
+        print(f"Error during liveness check: {e}")
+        return jsonify({"error": "An error occurred during liveness check"}), 500
+
+
 if __name__ == '__main__':
     print("Starting Flask server...")
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000, debug=True)

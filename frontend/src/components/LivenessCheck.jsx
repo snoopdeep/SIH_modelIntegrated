@@ -5,23 +5,52 @@ const LivenessCheck = () => {
   const [isChecking, setIsChecking] = useState(false);
   const [responseMessage, setResponseMessage] = useState("");
 
+  // const handleButtonClick = async () => {
+  //   setButtonLabel("CHECKING");
+  //   setIsChecking(true);
+
+  //   try {
+  //     const response = await fetch("http://localhost:5000/livenesscheck", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //     });
+  //     console.log(response);
+
+  //     if (response.ok) {
+  //       const data = await response.json();
+  //       console.log("Liveness check completed.",data);
+  //       setResponseMessage(data.message);
+  //     } else {
+  //       setResponseMessage("Error during liveness check.");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error:", error);
+  //     setResponseMessage("Error during liveness check.");
+  //   }
+
+  //   setIsChecking(false);
+  //   setButtonLabel("START");
+  // };
+
   const handleButtonClick = async () => {
     setButtonLabel("CHECKING");
     setIsChecking(true);
-
+  
     try {
-      const response = await fetch("http://localhost:5000/liveness", {
+      const response = await fetch("http://localhost:5000/livenesscheck", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
       });
       console.log(response);
-
+  
       if (response.ok) {
         const data = await response.json();
-        console.log("Liveness check completed.",data);
-        setResponseMessage(data.message);
+        console.log("Liveness check completed.", data);
+        setResponseMessage(data.message + "\nOutput: " + data.output);
       } else {
         setResponseMessage("Error during liveness check.");
       }
@@ -29,10 +58,11 @@ const LivenessCheck = () => {
       console.error("Error:", error);
       setResponseMessage("Error during liveness check.");
     }
-
+  
     setIsChecking(false);
     setButtonLabel("START");
   };
+  
 
   return (
     <div className="flex flex-col items-center justify-center bg-white shadow-lg p-8 rounded-lg mx-4 md:mx-auto max-w-2xl mt-3">

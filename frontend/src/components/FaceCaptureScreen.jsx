@@ -303,6 +303,7 @@ const FaceCaptureScreen = ({ onComplete }) => {
         method: "POST",
         body: formData,
       });
+      console.log(result);
 
       const data = await result.json();
       console.log(data);

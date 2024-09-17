@@ -1,223 +1,3 @@
-
-
-
-# # import tensorflow as tf
-# # import argparse
-# # import cv2
-# # import numpy as np
-# # import os
-# # import pickle
-# # from tensorflow.keras.preprocessing.image import img_to_array
-
-# # # Correct method to load a .keras or .h5 file
-# # from tensorflow.keras.models import load_model
-
-
-
-
-# # # Construct argument parse and parse the arguments
-# # ap = argparse.ArgumentParser()
-# # ap.add_argument("-m", "--model", type=str, required=True, help="path to trained model")
-# # ap.add_argument("-l", "--le", type=str, required=True, help="path to label encoder")
-# # ap.add_argument("-d", "--detector", type=str, required=True, help="path to OpenCV's deep learning face detector")
-# # ap.add_argument("-c", "--confidence", type=float, default=0.5, help="minimum probability to filter weak detections")
-# # ap.add_argument("-p", "--shape-predictor", required=True, help="path to facial landmark predictor")
-# # ap.add_argument("-o", "--output", type=str, required=True, help="path to output text file")
-# # args = vars(ap.parse_args())
-
-# # # Load face detector
-# # print("loading face detector")
-# # protoPath = os.path.sep.join([args["detector"], "deploy.prototxt"])
-# # modelPath = os.path.sep.join([args["detector"], "res10_300x300_ssd_iter_140000.caffemodel"])
-# # net = cv2.dnn.readNetFromCaffe(protoPath, modelPath)
-
-# # # # Load the liveness detection model
-# # # print("loading the liveness detector")
-# # # model = tf.saved_model.load(args["model"])
-
-# # # Load the liveness detection model
-# # print("loading the liveness detector")
-# # model = load_model(args["model"])  # Use the correct function for loading .keras files
-
-# # # Load label encoder
-# # le = pickle.loads(open(args["le"], "rb").read())
-
-# # # Define function to preprocess image for prediction
-# # def preprocess_image(face):
-# #     face = cv2.resize(face, (32, 32))
-# #     face = face.astype("float32") / 255.0
-# #     face = img_to_array(face)
-# #     face = np.expand_dims(face, axis=0)
-# #     return face
-
-# # # Start the video stream
-# # video_capture = cv2.VideoCapture(0)
-
-# # # Open the text file for writing results
-# # with open(args["output"], "w") as file:
-# #     while True:
-# #         # Read a frame from the video stream
-# #         ret, frame = video_capture.read()
-# #         if not ret:
-# #             break
-
-# #         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-# #         (h, w) = frame.shape[:2]
-# #         blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0))
-# #         net.setInput(blob)
-# #         detections = net.forward()
-        
-# #         for i in range(0, detections.shape[2]):
-# #             confidence = detections[0, 0, i, 2]
-# #             if confidence > args["confidence"]:
-# #                 box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
-# #                 (startX, startY, endX, endY) = box.astype("int")
-# #                 face = frame[startY:endY, startX:endX]
-                
-# #                 # Preprocess face image for liveness detection
-# #                 face = preprocess_image(face)
-# #                 preds = model(face)  # Get predictions from the model
-# #                 preds = preds.numpy()  # Convert TensorFlow tensor to numpy array
-# #                 label_index = np.argmax(preds, axis=-1)[0]  # Get the index of the highest probability
-# #                 confidence = preds[0][label_index]  # Get the confidence for the predicted label
-
-# #                 # Calculate adjusted confidence
-# #                 adjusted_confidence = confidence * 1.512
-
-# #                 # Determine label and format the result
-# #                 label_text = "Real" if confidence < 0.5 else "Fake"
-# #                 result = f"{label_text} ({adjusted_confidence:.4f}) - Box: ({startX}, {startY}, {endX}, {endY})\n"
-# #                 file.write(result)
-        
-# #         # Show the frame
-# #         cv2.imshow("Frame", frame)
-
-# #         # Check for the 'q' key to exit the loop
-# #         key = cv2.waitKey(1) & 0xFF
-# #         if key == ord("q"):
-# #             break
-
-# # # Clean up
-# # video_capture.release()
-# # cv2.destroyAllWindows()
-
-# import tensorflow as tf
-# import argparse
-# import cv2
-# import numpy as np
-# import os
-# import pickle
-# from tensorflow.keras.preprocessing.image import img_to_array
-# from tensorflow.keras.models import load_model
-# import signal
-# import sys
-
-# # Construct argument parse and parse the arguments
-# ap = argparse.ArgumentParser()
-# ap.add_argument("-m", "--model", type=str, required=True, help="path to trained model")
-# ap.add_argument("-l", "--le", type=str, required=True, help="path to label encoder")
-# ap.add_argument("-d", "--detector", type=str, required=True, help="path to OpenCV's deep learning face detector")
-# ap.add_argument("-c", "--confidence", type=float, default=0.5, help="minimum probability to filter weak detections")
-# ap.add_argument("-p", "--shape-predictor", required=True, help="path to facial landmark predictor")
-# ap.add_argument("-o", "--output", type=str, required=True, help="path to output text file")
-# args = vars(ap.parse_args())
-
-# # Signal handler to release resources and exit gracefully
-# def signal_handler(sig, frame):
-#     print("Process interrupted. Releasing resources...")
-#     if 'video_capture' in globals() and video_capture.isOpened():
-#         video_capture.release()
-#     cv2.destroyAllWindows()
-#     sys.exit(0)
-
-# # Register the signal handler
-# signal.signal(signal.SIGINT, signal_handler)
-# signal.signal(signal.SIGTERM, signal_handler)
-
-# # Load face detector
-# print("loading face detector")
-# protoPath = os.path.sep.join([args["detector"], "deploy.prototxt"])
-# modelPath = os.path.sep.join([args["detector"], "res10_300x300_ssd_iter_140000.caffemodel"])
-# net = cv2.dnn.readNetFromCaffe(protoPath, modelPath)
-
-# # Load the liveness detection model
-# print("loading the liveness detector")
-# model = load_model(args["model"])  # Use the correct function for loading .keras files
-
-# # Load label encoder
-# le = pickle.loads(open(args["le"], "rb").read())
-
-# # Define function to preprocess image for prediction
-# def preprocess_image(face):
-#     face = cv2.resize(face, (32, 32))
-#     face = face.astype("float32") / 255.0
-#     face = img_to_array(face)
-#     face = np.expand_dims(face, axis=0)
-#     return face
-
-# # Start the video stream
-# video_capture = cv2.VideoCapture(0)
-# if not video_capture.isOpened():
-#     print("Error: Could not open webcam.")
-#     sys.exit(1)
-
-# # Open the text file for writing results
-# with open(args["output"], "w") as file:
-#     try:
-#         while True:
-#             # Read a frame from the video stream
-#             ret, frame = video_capture.read()
-#             if not ret:
-#                 print("Error: Could not read frame from webcam.")
-#                 break
-
-#             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-#             (h, w) = frame.shape[:2]
-#             blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0))
-#             net.setInput(blob)
-#             detections = net.forward()
-            
-#             for i in range(0, detections.shape[2]):
-#                 confidence = detections[0, 0, i, 2]
-#                 if confidence > args["confidence"]:
-#                     box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
-#                     (startX, startY, endX, endY) = box.astype("int")
-#                     face = frame[startY:endY, startX:endX]
-                    
-#                     # Preprocess face image for liveness detection
-#                     face = preprocess_image(face)
-#                     preds = model(face)  # Get predictions from the model
-#                     preds = preds.numpy()  # Convert TensorFlow tensor to numpy array
-#                     label_index = np.argmax(preds, axis=-1)[0]  # Get the index of the highest probability
-#                     confidence = preds[0][label_index]  # Get the confidence for the predicted label
-
-#                     # Calculate adjusted confidence
-#                     adjusted_confidence = confidence * 1.512
-
-#                     # Determine label and format the result
-#                     label_text = "Real" if confidence < 0.5 else "Fake"
-#                     result = f"{label_text} ({adjusted_confidence:.4f}) - Box: ({startX}, {startY}, {endX}, {endY})\n"
-#                     file.write(result)
-            
-#             # Show the frame
-#             cv2.imshow("Frame", frame)
-
-#             # Check for the 'q' key to exit the loop
-#             key = cv2.waitKey(1) & 0xFF
-#             if key == ord("q"):
-#                 break
-
-#     except Exception as e:
-#         print(f"Error during processing: {e}")
-
-#     finally:
-#         # Clean up
-#         video_capture.release()
-#         cv2.destroyAllWindows()
-#         print("Resources released. Exiting program.")
-
-
-
 import tensorflow as tf
 import argparse
 import cv2
@@ -229,108 +9,87 @@ from tensorflow.keras.models import load_model
 import signal
 import sys
 
-# Construct argument parse and parse the arguments
-ap = argparse.ArgumentParser()
-ap.add_argument("-m", "--model", type=str, required=True, help="path to trained model")
-ap.add_argument("-l", "--le", type=str, required=True, help="path to label encoder")
-ap.add_argument("-d", "--detector", type=str, required=True, help="path to OpenCV's deep learning face detector")
-ap.add_argument("-c", "--confidence", type=float, default=0.5, help="minimum probability to filter weak detections")
-ap.add_argument("-p", "--shape-predictor", required=True, help="path to facial landmark predictor")
-ap.add_argument("-o", "--output", type=str, required=True, help="path to output text file")
-args = vars(ap.parse_args())
-
 # Signal handler to release resources and exit gracefully
 def signal_handler(sig, frame):
     print("Process interrupted. Releasing resources...")
-    if 'video_capture' in globals() and video_capture.isOpened():
-        video_capture.release()
     cv2.destroyAllWindows()
     sys.exit(0)
 
-# Register the signal handler
 signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
 
-# Load face detector
-print("Loading face detector")
-protoPath = os.path.sep.join([args["detector"], "deploy.prototxt"])
-modelPath = os.path.sep.join([args["detector"], "res10_300x300_ssd_iter_140000.caffemodel"])
-net = cv2.dnn.readNetFromCaffe(protoPath, modelPath)
+def load_liveness_model(model_path, le_path, detector_path, shape_predictor_path):
+    """Load the necessary models and encoders."""
+    # Load face detector
+    print("Loading face detector")
+    protoPath = os.path.sep.join([detector_path, "deploy.prototxt"])
+    modelPath = os.path.sep.join([detector_path, "res10_300x300_ssd_iter_140000.caffemodel"])
+    net = cv2.dnn.readNetFromCaffe(protoPath, modelPath)
 
-# Load the liveness detection model
-print("Loading the liveness detector")
-model = load_model(args["model"])  # Use the correct function for loading .keras files
+    # Load the liveness detection model
+    print("Loading the liveness detector")
+    model = load_model(model_path)
 
-# Load label encoder
-with open(args["le"], "rb") as f:
-    le = pickle.load(f)
+    # Load label encoder
+    with open(le_path, "rb") as f:
+        le = pickle.load(f)
 
-# Define function to preprocess image for prediction
+    print("Models loaded successfully.")
+    return net, model, le
+
 def preprocess_image(face):
+    """Preprocess the face image for prediction."""
     face = cv2.resize(face, (32, 32))
     face = face.astype("float32") / 255.0
     face = img_to_array(face)
     face = np.expand_dims(face, axis=0)
     return face
 
-# Start the video stream
-video_capture = cv2.VideoCapture(0)
-if not video_capture.isOpened():
-    print("Error: Could not open webcam.")
-    sys.exit(1)
+def process_video(video_path, net, model, le, shape_predictor_path, output_path):
+    """Process the video and detect liveness."""
+    # Start processing video
+    video_capture = cv2.VideoCapture(video_path)
+    if not video_capture.isOpened():
+        print("Error: Could not open video file.")
+        sys.exit(1)
 
-# Open the text file for writing results
-with open(args["output"], "w") as file:
-    try:
-        while True:
-            # Read a frame from the video stream
-            ret, frame = video_capture.read()
-            if not ret:
-                print("Error: Could not read frame from webcam.")
-                break
+    # Open the text file for writing results
+    with open(output_path, "w") as file:
+        try:
+            while True:
+                ret, frame = video_capture.read()
+                if not ret:
+                    break
 
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            (h, w) = frame.shape[:2]
-            blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0))
-            net.setInput(blob)
-            detections = net.forward()
-            
-            for i in range(0, detections.shape[2]):
-                confidence = detections[0, 0, i, 2]
-                if confidence > args["confidence"]:
-                    box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
-                    (startX, startY, endX, endY) = box.astype("int")
-                    face = frame[startY:endY, startX:endX]
-                    
-                    # Preprocess face image for liveness detection
-                    face = preprocess_image(face)
-                    preds = model(face)  # Get predictions from the model
-                    preds = preds.numpy()  # Convert TensorFlow tensor to numpy array
-                    label_index = np.argmax(preds, axis=-1)[0]  # Get the index of the highest probability
-                    confidence = preds[0][label_index]  # Get the confidence for the predicted label
+                (h, w) = frame.shape[:2]
+                blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0))
+                net.setInput(blob)
+                detections = net.forward()
 
-                    # Calculate adjusted confidence
-                    adjusted_confidence = confidence * 1.512
+                for i in range(0, detections.shape[2]):
+                    confidence = detections[0, 0, i, 2]
+                    if confidence > 0.5:  # Use fixed threshold
+                        box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
+                        (startX, startY, endX, endY) = box.astype("int")
+                        face = frame[startY:endY, startX:endX]
 
-                    # Determine label and format the result
-                    label_text = "Real" if confidence > 0.5 else "Fake"
-                    result = f"{label_text} ({adjusted_confidence:.4f}) - Box: ({startX}, {startY}, {endX}, {endY})\n"
-                    file.write(result)
-                    file.flush()  # Ensure the content is written to the file immediately
-            
-            # Show the frame
-            cv2.imshow("Frame", frame)
+                        # Preprocess face image for liveness detection
+                        face = preprocess_image(face)
+                        preds = model(face)
+                        preds = preds.numpy()
+                        label_index = np.argmax(preds, axis=-1)[0]
+                        confidence = preds[0][label_index]
 
-            # Check for the 'q' key to exit the loop
-            key = cv2.waitKey(1) & 0xFF
-            if key == ord("q"):
-                break
+                        adjusted_confidence = confidence * 1.512
+                        label_text = "Real" if confidence > 0.5 else "Fake"
+                        result = f"{label_text} ({adjusted_confidence:.4f}) - Box: ({startX}, {startY}, {endX}, {endY})\n"
+                        file.write(result)
+                        file.flush()
 
-    except Exception as e:
-        print(f"Error during processing: {e}")
+        except Exception as e:
+            print(f"Error during processing: {e}")
 
-    finally:
-        # Clean up
-        video_capture.release()
-        cv2.destroyAllWindows()
-        print("Resources released. Exiting program.")
+        finally:
+            video_capture.release()
+            cv2.destroyAllWindows()
+            print("Resources released. Exiting program.")

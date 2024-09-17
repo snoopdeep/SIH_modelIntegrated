@@ -1,5 +1,3 @@
-
-
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import cv2
@@ -8,6 +6,10 @@ import numpy as np
 from scipy.spatial import distance as dist
 import subprocess
 import os
+import time
+from celery import Celery, states
+from celery.result import AsyncResult
+from demo import load_liveness_model, process_video  # Import from demo.py
 
 app = Flask(__name__)
 
@@ -129,161 +131,66 @@ def detect_movement():
         print(f"Error processing frames: {e}")
         return jsonify({"error": "An error occurred while processing the frames."}), 500
 
-# @app.route('/livenesscheck', methods=['POST'])
-# def liveness_check():
-#     print("Received request to /livenesscheck")  # Log to ensure route is being accessed
+
+
+
+# Global variables to hold the loaded models
+net = None
+model = None
+le = None
+
+def initialize_model():
+    global net, model, le
+    print("Loading model...")
+    net, model, le = load_liveness_model(
+        model_path="C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\liveness1.keras",
+        le_path="C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\le.pickle",
+        detector_path="C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend",
+        shape_predictor_path="C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\shape_predictor"
+    )
+    print("Model loaded successfully.")
+
+@app.route('/initialize_model', methods=['GET'])
+def initialize_model_endpoint():
+    global net, model, le
+    if net is None or model is None or le is None:
+        initialize_model()
+        return jsonify({"message": "Model initialized successfully."}), 200
+    return jsonify({"message": "Model already initialized."}), 200
+
+@app.route('/process_video', methods=['POST'])
+def process_video_endpoint():
+    global net, model, le
     
-#     try:
-#         # Define the command to run demo.py with all required arguments
-#         command = [
-#             "python", "demo.py",
-#             "-m", "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\liveness1.keras",
-#             "-l", "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\le.pickle",
-#             "-d", "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend",
-#             "-p", "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\shape_predictor",
-#             "-o", "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\output.txt"
-#         ]
+    if net is None or model is None or le is None:
+        return jsonify({"error": "Model not loaded yet. Please initialize the model first."}), 400
 
-#         # Run the command and wait for 5 seconds
-#         process = subprocess.Popen(command)
-#         process.wait(timeout=5)  # Run the process for 5 seconds
+    if 'video' not in request.files:
+        return jsonify({"error": "No video file provided."}), 400
 
-#         # Check if output file is created
-#         output_file_path = "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\output.txt"
-#         if os.path.exists(output_file_path):
-#             return send_file(output_file_path, as_attachment=True)
+    video_file = request.files['video']
+    if not video_file:
+        return jsonify({"error": "No file part in the request."}), 400
 
-#         return jsonify({"error": "Liveness check failed to produce output"}), 500
+    video_file_path = 'input_video.mp4'
+    video_file.save(video_file_path)
 
-#     except subprocess.TimeoutExpired:
-#         print("Process took too long and was terminated.")
-#         return jsonify({"error": "Liveness check process took too long"}), 500
-#     except Exception as e:
-#         print(f"Error during liveness check: {e}")
-#         return jsonify({"error": "An error occurred during liveness check"}), 500
+    output_file_path = "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\output.txt"
+    process_video(
+        video_path=video_file_path,
+        net=net,
+        model=model,
+        le=le,
+        shape_predictor_path="C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\shape_predictor",
+        output_path=output_file_path
+    )
 
-# @app.route('/livenesscheck', methods=['POST'])
-# def liveness_check():
-#     print("Received request to /livenesscheck")  # Log to ensure route is being accessed
-    
-#     try:
-#         # Define the command to run demo.py with all required arguments
-#         command = [
-#             "python", "demo.py",
-#             "-m", "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\liveness1.keras",
-#             "-l", "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\le.pickle",
-#             "-d", "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend",
-#             "-p", "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\shape_predictor",
-#             "-o", "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\output.txt"
-#         ]
+    if os.path.exists(output_file_path):
+        with open(output_file_path, 'r') as file:
+            output_content = file.read().strip()
+        return jsonify({"message": "Liveness check completed.", "output": output_content})
 
-#         # Run the command and wait for 5 seconds
-#         process = subprocess.Popen(command)
-#         process.wait(timeout=10)  # Run the process for 5 seconds
-
-#         # Terminate the process to close the webcam
-#         process.terminate()
-
-#         # Check if output file is created
-#         output_file_path = "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\output.txt"
-#         if os.path.exists(output_file_path):
-#             with open(output_file_path, 'r') as file:
-#                 output_content = file.read()
-#             return jsonify({"message": "Liveness check completed.", "output": output_content})
-
-#         return jsonify({"error": "Liveness check failed to produce output"}), 500
-
-#     except subprocess.TimeoutExpired:
-#         print("Process took too long and was terminated.")
-#         return jsonify({"error": "Liveness check process took too long"}), 500
-#     except Exception as e:
-#         print(f"Error during liveness check: {e}")
-#         return jsonify({"error": "An error occurred during liveness check"}), 500
-
-
-# @app.route('/livenesscheck', methods=['POST'])
-# def liveness_check():
-#     print("Received request to /livenesscheck")  # Log to ensure route is being accessed
-
-#     try:
-#         # Define the command to run demo.py with all required arguments
-#         command = [
-#             "python", "demo.py",
-#             "-m", "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\liveness1.keras",
-#             "-l", "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\le.pickle",
-#             "-d", "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend",
-#             "-p", "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\shape_predictor",
-#             "-o", "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\output.txt"
-#         ]
-
-#         # Run the command and wait for 5 seconds
-#         process = subprocess.Popen(command)
-#         try:
-#             process.wait(timeout=30)  # Adjust timeout as needed based on your model loading time
-#         except subprocess.TimeoutExpired:
-#             print("Process took too long and was terminated.")
-#             process.terminate()
-#             process.wait()  # Ensure the process is completely terminated
-#             return jsonify({"error": "Liveness check process took too long"}), 500
-
-#         # Check if output file is created
-#         output_file_path = "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\output.txt"
-#         if os.path.exists(output_file_path):
-#             with open(output_file_path, 'r') as file:
-#                 output_content = file.read()
-#             return jsonify({"message": "Liveness check completed.", "output": output_content})
-
-#         return jsonify({"error": "Liveness check failed to produce output"}), 500
-
-#     except Exception as e:
-#         print(f"Error during liveness check: {e}")
-#         return jsonify({"error": "An error occurred during liveness check"}), 500
-
-@app.route('/livenesscheck', methods=['POST'])
-def liveness_check():
-    print("Received request to /livenesscheck")  # Log to ensure route is being accessed
-
-    try:
-        # Define the command to run demo.py with all required arguments
-        command = [
-            "python", "demo.py",
-            "-m", "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\liveness1.keras",
-            "-l", "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\le.pickle",
-            "-d", "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend",
-            "-p", "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\shape_predictor",
-            "-o", "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\output.txt"
-        ]
-
-        # Run the command and wait for it to complete
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        try:
-            stdout, stderr = process.communicate(timeout=30)  # Adjust timeout as needed based on your model loading time
-        except subprocess.TimeoutExpired:
-            print("Process took too long and was terminated.")
-            process.terminate()
-            process.wait()  # Ensure the process is completely terminated
-            return jsonify({"error": "Liveness check process took too long"}), 500
-
-        # Check for errors in subprocess execution
-        if process.returncode != 0:
-            print(f"Error during liveness check process: {stderr.decode('utf-8')}")
-            return jsonify({"error": f"Error running demo.py: {stderr.decode('utf-8')}"}), 500
-
-        # Check if output file is created
-        output_file_path = "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\output.txt"
-        if os.path.exists(output_file_path):
-            with open(output_file_path, 'r') as file:
-                output_content = file.read().strip()  # Strip to remove any unnecessary whitespace or newlines
-            return jsonify({"message": "Liveness check completed.", "output": output_content})
-
-        # If output file was not created, return an error
-        print("Liveness check failed to produce output")
-        return jsonify({"error": "Liveness check failed to produce output"}), 500
-
-    except Exception as e:
-        print(f"Error during liveness check: {e}")
-        return jsonify({"error": "An error occurred during liveness check: " + str(e)}), 500
-
+    return jsonify({"error": "Liveness check failed to produce output"}), 500
 if __name__ == '__main__':
     print("Starting Flask server...")
     app.run(host='0.0.0.0', port=5000, debug=True)

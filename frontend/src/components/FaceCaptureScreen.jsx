@@ -1,7 +1,8 @@
+
 // import React, { useRef, useState, useEffect } from "react";
 // import Webcam from "react-webcam";
-// import AuthAnimation from "./AuthAnimation"; // Import your animation component
-// import LivenessCheck from "./LivenessCheck"; // Import the new component
+// import AuthAnimation from "./AuthAnimation";
+// import LivenessCheck from "./LivenessCheck";
 
 // const FaceCaptureScreen = ({ onComplete }) => {
 //   const webcamRef = useRef(null);
@@ -13,18 +14,20 @@
 //   const [tasksCompleted, setTasksCompleted] = useState(0);
 //   const [tasks, setTasks] = useState([]);
 //   const [cameraReady, setCameraReady] = useState(false);
-//   const [livenessResult, setLivenessResult] = useState(null); // State to store result
-//   const [timer, setTimer] = useState(5); // Timer state for capturing frames
-//   const [showLivenessCheck, setShowLivenessCheck] = useState(false); // New state to show LivenessCheck component
-//   const [livenessFailed, setLivenessFailed] = useState(false); // State to show if liveness check failed
+//   const [livenessResult, setLivenessResult] = useState(null);
+//   const [timer, setTimer] = useState(5);
+//   const [showLivenessCheck, setShowLivenessCheck] = useState(false);
+//   const [livenessFailed, setLivenessFailed] = useState(false);
 
-//   const availableTasks = ["left", "right", "up", "down"];
+//   const availableTasks = [
+//     "Right:Open", "Right:Close", "Right:Four", "Right:Three", "Right:Pointer",
+//     "Left:Open", "Left:Close", "Left:Four", "Left:Three", "Left:Pointer"
+//   ];
 
 //   useEffect(() => {
 //     const selectedTasks = [];
 //     while (selectedTasks.length < 2) {
-//       const randomTask =
-//         availableTasks[Math.floor(Math.random() * availableTasks.length)];
+//       const randomTask = availableTasks[Math.floor(Math.random() * availableTasks.length)];
 //       if (!selectedTasks.includes(randomTask)) {
 //         selectedTasks.push(randomTask);
 //       }
@@ -34,24 +37,23 @@
 
 //   useEffect(() => {
 //     if (cameraReady && tasks.length > 0 && tasksCompleted < 2) {
-//       setMessage(`Task ${tasksCompleted + 1}: ${tasks[taskIndex]}`);
+//       setMessage(`Task ${tasksCompleted + 1}: Show ${tasks[taskIndex]}`);
 //       setShowWebcam(true);
-//       captureAndVerifyLiveness(); // Start capturing frames during the task
+//       captureAndVerifyLiveness();
 //     } else if (tasksCompleted === 2) {
 //       setMessage("You may now verify your liveness.");
-//       setShowWebcam(false); // Hide the webcam
+//       setShowWebcam(false);
 //     }
 //   }, [cameraReady, tasks, taskIndex, tasksCompleted]);
 
 //   const captureAndVerifyLiveness = async () => {
 //     const capturedFrames = [];
-//     const captureCount = 30; // Ensure exactly 30 frames are captured
-//     const delayBetweenCaptures = 100; // Delay between captures in milliseconds
+//     const captureCount = 30;
+//     const delayBetweenCaptures = 100;
 
-//     setMessage(`${tasks[taskIndex]}`);
-//     setTimer(5); // Reset timer to 5 seconds for capturing
+//     setMessage(`Show ${tasks[taskIndex]}`);
+//     setTimer(5);
 
-//     // Countdown Timer for capturing frames
 //     const timerInterval = setInterval(() => {
 //       setTimer((prev) => {
 //         if (prev <= 1) {
@@ -62,32 +64,27 @@
 //       });
 //     }, 1000);
 
-//     // Capture frames
-//     let framesCaptured = 0; // Track the number of frames captured
+//     let framesCaptured = 0;
 //     while (framesCaptured < captureCount) {
-//       const imageSrc = webcamRef.current?.getScreenshot(); // Capture image from webcam
+//       const imageSrc = webcamRef.current?.getScreenshot();
 //       if (imageSrc) {
 //         try {
 //           const response = await fetch(imageSrc);
 //           const blob = await response.blob();
-//           capturedFrames.push(blob); // Add frame to capturedFrames array
-//           framesCaptured++; // Increment the count of successfully captured frames
+//           capturedFrames.push(blob);
+//           framesCaptured++;
 //         } catch (error) {
 //           console.error("Error capturing frame:", error);
 //         }
 //       } else {
 //         console.warn("getScreenshot returned null, retrying...");
 //       }
-//       await new Promise((resolve) => setTimeout(resolve, delayBetweenCaptures)); // Wait for the specified delay
+//       await new Promise((resolve) => setTimeout(resolve, delayBetweenCaptures));
 //     }
 
-//     console.log({ movement: capturedFrames }); // Log frames count to check consistency
-
-//     // Hide the webcam and show animation while analyzing
 //     setShowWebcam(false);
 //     setShowAnimation(true);
 
-//     // Send captured frames to backend for liveness detection
 //     try {
 //       setLoading(true);
 
@@ -104,20 +101,24 @@
 //       const data = await result.json();
 //       console.log(data);
 //       setLoading(false);
-//       setShowAnimation(false); // Hide the animation after receiving response
+//       setShowAnimation(false);
 
-//       // Ensure the liveness result is an array and not undefined or empty
 //       if (data.movements && Array.isArray(data.movements) && data.movements.length > 0) {
-//         setLivenessResult(data.movements); // Set result to state
+//         setLivenessResult(data.movements);
 
-//         // Correct condition: Check if the current task is included in the response
-//         if (data.movements.some((movement) => movement.toLowerCase() === tasks[taskIndex])) {
-//           proceedToNextTask(); // Proceed to next task
+//         // Check if any hand_sign in the response matches the current task
+//         const currentTask = tasks[taskIndex].split(':');
+//         const taskSide = currentTask[0];
+//         const taskGesture = currentTask[1];
+
+//         if (data.movements.some(movement => 
+//           movement.hand_side === taskSide && movement.hand_sign.includes(taskGesture)
+//         )) {
+//           proceedToNextTask();
 //         } else {
-//           setLivenessFailed(true); // Show liveness failed component
+//           setLivenessFailed(true);
 //         }
 //       } else {
-//         // Handle empty or unexpected response structure
 //         console.error("Unexpected response format or empty movements array:", data);
 //         setMessage("No valid movements detected. Please try again.");
 //         setLoading(false);
@@ -139,18 +140,21 @@
 //       setTaskIndex((prev) => prev + 1);
 //       setShowAnimation(false);
 //       setLoading(false);
-//       setMessage(`Task ${tasksCompleted + 1}: ${tasks[taskIndex]}`);
-//       setShowWebcam(true); // Show webcam again for the next task
+//       if (tasksCompleted + 1 < 2) {
+//         setMessage(`Task ${tasksCompleted + 2}: Show ${tasks[taskIndex + 1]}`);
+//         setShowWebcam(true);
+//       } else {
+//         setMessage("You may now verify your liveness.");
+//       }
 //     }, 2000);
 //   };
 
 //   const handleLivenessCheck = () => {
-//     // Just navigate to the LivenessCheck component without sending a request
-//     setShowLivenessCheck(true); // Show the LivenessCheck component
+//     setShowLivenessCheck(true);
 //   };
 
 //   if (showLivenessCheck) {
-//     return <LivenessCheck />; // Render LivenessCheck component if state is true
+//     return <LivenessCheck />;
 //   }
 
 //   if (livenessFailed) {
@@ -165,7 +169,6 @@
 
 //   return (
 //     <div className="flex flex-col items-center justify-center bg-white shadow-lg p-8 rounded-lg mx-4 md:mx-auto max-w-2xl mt-3 relative">
-//       {/* Timer Display in the Corner */}
 //       {timer > 0 && (
 //         <div className="absolute top-4 right-4 bg-gray-800 text-white p-2 rounded-full">
 //           {timer}
@@ -188,7 +191,7 @@
 //               videoConstraints={{
 //                 facingMode: "user",
 //               }}
-//               onUserMedia={() => setCameraReady(true)} // Camera is ready
+//               onUserMedia={() => setCameraReady(true)}
 //             />
 //           )}
 //           <p className="mt-4 text-xl font-semibold text-gray-700">{message}</p>
@@ -196,7 +199,7 @@
 //             <>
 //               <button
 //                 className="mt-4 bg-[#ff8c00] text-white py-3 px-6 rounded-full hover:bg-[#db851c] transition duration-800 shadow-lg shadow-gray-400"
-//                 onClick={handleLivenessCheck} // Go to LivenessCheck component
+//                 onClick={handleLivenessCheck}
 //                 disabled={loading}
 //               >
 //                 {loading ? "Verifying..." : "Verify Liveness"}
@@ -210,6 +213,9 @@
 // };
 
 // export default FaceCaptureScreen;
+
+
+// // ---------------------------------------- //
 
 
 
@@ -265,18 +271,27 @@ const FaceCaptureScreen = ({ onComplete }) => {
     const captureCount = 30;
     const delayBetweenCaptures = 100;
 
-    setMessage(`Show ${tasks[taskIndex]}`);
-    setTimer(5);
+    // Step 1: Show the gesture for 2 seconds
+    setMessage(`Task: Show ${tasks[taskIndex]}`);
+    setTimer(2); // Display gesture for 2 seconds
 
-    const timerInterval = setInterval(() => {
+    // Start a 2-second countdown to show the gesture
+    const gestureTimerInterval = setInterval(() => {
       setTimer((prev) => {
         if (prev <= 1) {
-          clearInterval(timerInterval);
+          clearInterval(gestureTimerInterval); // Stop the timer when it reaches 0
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
+
+    // Wait for 2 seconds before proceeding with liveness capture
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    // Step 2: Start the camera and immediately begin capturing frames
+    setMessage("Capturing frames for liveness check...");
+    setShowWebcam(true); // Display the webcam
 
     let framesCaptured = 0;
     while (framesCaptured < captureCount) {
@@ -296,12 +311,16 @@ const FaceCaptureScreen = ({ onComplete }) => {
       await new Promise((resolve) => setTimeout(resolve, delayBetweenCaptures));
     }
 
+    // Immediately close the camera after capturing frames
     setShowWebcam(false);
-    setShowAnimation(true);
+
+    // Step 3: Send captured frames for liveness verification
+    setShowAnimation(true); // Show animation while analyzing
 
     try {
       setLoading(true);
 
+      // Send the captured frames to the backend for analysis
       const formData = new FormData();
       capturedFrames.forEach((frame, index) => {
         formData.append(`image_${index}`, frame, `frame_${index}.jpg`);
@@ -328,9 +347,9 @@ const FaceCaptureScreen = ({ onComplete }) => {
         if (data.movements.some(movement => 
           movement.hand_side === taskSide && movement.hand_sign.includes(taskGesture)
         )) {
-          proceedToNextTask();
+          proceedToNextTask(); // Move to the next task
         } else {
-          setLivenessFailed(true);
+          setLivenessFailed(true); // Liveness failed
         }
       } else {
         console.error("Unexpected response format or empty movements array:", data);
@@ -427,3 +446,6 @@ const FaceCaptureScreen = ({ onComplete }) => {
 };
 
 export default FaceCaptureScreen;
+
+
+

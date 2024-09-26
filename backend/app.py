@@ -176,7 +176,7 @@ def initialize_model():
     global net, model, le
     print("Loading model...")
     net, model, le = load_liveness_model(
-        model_path="C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\liveness1.keras",
+        model_path="C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\liveness1.h5",
         le_path="C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\le.pickle",
         detector_path="C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend",
         shape_predictor_path="C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\backend\\shape_predictor"

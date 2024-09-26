@@ -1,0 +1,8 @@
+python demo.py -m "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\LivenessModelCheck\\liveness1.h5" -l "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\LivenessModelCheck\\le.pickle" -d "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\LivenessModelCheck" -p "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\LivenessModelCheck\\shape_predictor"
+
+// run via this commands
+
+python demo.py -m "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\LivenessModelCheck\\liveness1.h5" -l "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\LivenessModelCheck\\le.pickle" -d "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\LivenessModelCheck" -p "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\LivenessModelCheck\\shape_predictor_68_face_landmarks.dat"
+
+
+python demo.py -m "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\LivenessModelCheck\\liveness1.h5" -l "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\LivenessModelCheck\\le.pickle" -d "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\LivenessModelCheck" -p "C:\\Users\\Deepak Singh\\OneDrive\\Desktop\\SIH\\LivenessModelCheck\\shape_predictor_68_face_landmarks.dat"
